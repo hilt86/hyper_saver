@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ This script starts a hyper.sh container on Yubikey
-   insertion and stops it on removal """
+    insertion and stops it on removal - tested on OSX """
 
 import os
 import sys
@@ -11,7 +11,7 @@ import osquery
 FNULL = open(os.devnull, 'w')
 
 def search():
-    """This function searches for a Yubico device"""
+    """ This function searches for a Yubikey """
     # Spawn an osquery process using an ephemeral extension socket.
     instance = osquery.SpawnInstance()
     instance.open()  # This may raise an exception
@@ -27,30 +27,31 @@ def search():
     return False
 
 class Printer():
-    """
-    Print things to stdout on one line dynamically
-    """
+    """ Print things to stdout on one line dynamically """
     def __init__(self, data):
         sys.stdout.write("\r\x1b[K"+data.__str__())
         sys.stdout.flush()
 
-def container_running():
-    """This function checks is a hyper container is running"""
+def check_container_running():
+    """ This function checks is a hyper container is running """
     state = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=boring-hopper', '-q']).strip()
     return bool(state == "f2f225c16c75")
 
 if __name__ == "__main__":
     while True:
-        cont_status = container_running()
-        usb_status = search()
-        if cont_status == True: cont_disp_status = "running"
+        container_running = check_container_running()
+        yubikey_present = search()
+
+        """ set and print status """
+        if container_running == True: cont_disp_status = "running"
         else: cont_disp_status = "stopped"
-        if usb_status == True: usb_disp_status = "inserted"
+        if yubikey_present == True: usb_disp_status = "inserted"
         else: usb_disp_status = "absent"
         screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
         Printer(screen_output)
         time.sleep(5)
-        if cont_status == False and usb_status == True:
+
+        if not container_running and yubikey_present:
             time.sleep(3)
             cont_disp_status = "starting"
             screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
@@ -60,7 +61,7 @@ if __name__ == "__main__":
             subprocess.call(['/usr/local/bin/hyper', 'exec', '-d', 'boring-hopper', '/usr/sbin/sshd'], stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(3)
             subprocess.call(['/usr/local/bin/hyper', 'fip', 'attach', 'access', 'boring-hopper'], stdout=FNULL, stderr=subprocess.STDOUT)
-        elif usb_status == False and cont_status == True:
+        elif not yubikey_present and container_running: 
             cont_disp_status = "stopping"
             screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
             Printer(screen_output)
