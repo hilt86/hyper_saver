@@ -9,6 +9,9 @@ import subprocess
 import osquery
 
 FNULL = open(os.devnull, 'w')
+CONTAINER_NAME = sys.argv[1]
+FIP_NAME = sys.argv[2]
+
 
 def search():
     """ This function searches for a Yubikey """
@@ -56,16 +59,16 @@ if __name__ == "__main__":
             cont_disp_status = "starting"
             screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
             Printer(screen_output)
-            subprocess.call(['/usr/local/bin/hyper', 'start', 'boring-hopper'], stdout=FNULL, stderr=subprocess.STDOUT)
+            subprocess.call(['/usr/local/bin/hyper', 'start', CONTAINER_NAME], stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(3)
-            subprocess.call(['/usr/local/bin/hyper', 'exec', '-d', 'boring-hopper', '/usr/sbin/sshd'], stdout=FNULL, stderr=subprocess.STDOUT)
+            subprocess.call(['/usr/local/bin/hyper', 'exec', '-d', CONTAINER_NAME, '/usr/sbin/sshd'], stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(3)
-            subprocess.call(['/usr/local/bin/hyper', 'fip', 'attach', 'access', 'boring-hopper'], stdout=FNULL, stderr=subprocess.STDOUT)
+            subprocess.call(['/usr/local/bin/hyper', 'fip', 'attach', FIP_NAME, CONTAINER_NAME], stdout=FNULL, stderr=subprocess.STDOUT)
         elif not yubikey_present and container_running: 
             cont_disp_status = "stopping"
             screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
             Printer(screen_output)
             time.sleep(3)
-            subprocess.call(['/usr/local/bin/hyper', 'fip', 'detach', 'boring-hopper'], stdout=FNULL, stderr=subprocess.STDOUT)
+            subprocess.call(['/usr/local/bin/hyper', 'fip', 'detach', CONTAINER_NAME], stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(3)
-            subprocess.call(['/usr/local/bin/hyper', 'stop', 'boring-hopper'], stdout=FNULL, stderr=subprocess.STDOUT)
+            subprocess.call(['/usr/local/bin/hyper', 'stop', CONTAINER_NAME], stdout=FNULL, stderr=subprocess.STDOUT)
