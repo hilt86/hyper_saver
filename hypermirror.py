@@ -2,10 +2,13 @@
 """ This script starts a hyper.sh container on Yubikey
    insertion and stops it on removal """
 
+import os
 import sys
 import time
 import subprocess
 import osquery
+
+FNULL = open(os.devnull, 'w')
 
 def search():
     """This function searches for a Yubico device"""
@@ -40,23 +43,28 @@ if __name__ == "__main__":
     while True:
         cont_status = container_running()
         usb_status = search()
-        screen_output =  "Container running : %s Yubikey inserted : %s" % (cont_status, usb_status)
+        if cont_status == True: cont_disp_status = "running"
+        else: cont_disp_status = "stopped"
+        if usb_status == True: usb_disp_status = "inserted"
+        else: usb_disp_status = "absent"
+        screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
         Printer(screen_output)
         time.sleep(5)
         if cont_status == False and usb_status == True:
             time.sleep(3)
-            print "Starting Boring Hopper"
-            subprocess.call(['/usr/local/bin/hyper', 'start', 'boring-hopper'])
+            cont_disp_status = "starting"
+            screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
+            Printer(screen_output)
+            subprocess.call(['/usr/local/bin/hyper', 'start', 'boring-hopper'], stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(3)
-            print "Starting sshd"
-            subprocess.call(['/usr/local/bin/hyper', 'exec', '-d', 'boring-hopper', '/usr/sbin/sshd'])
+            subprocess.call(['/usr/local/bin/hyper', 'exec', '-d', 'boring-hopper', '/usr/sbin/sshd'], stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(3)
-            print "Attaching FIP"
-            subprocess.call(['/usr/local/bin/hyper', 'fip', 'attach', 'access', 'boring-hopper'])
+            subprocess.call(['/usr/local/bin/hyper', 'fip', 'attach', 'access', 'boring-hopper'], stdout=FNULL, stderr=subprocess.STDOUT)
         elif usb_status == False and cont_status == True:
-            print "detaching FIP"
+            cont_disp_status = "stopping"
+            screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
+            Printer(screen_output)
             time.sleep(3)
-            subprocess.call(['/usr/local/bin/hyper', 'fip', 'detach', 'boring-hopper'])
+            subprocess.call(['/usr/local/bin/hyper', 'fip', 'detach', 'boring-hopper'], stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(3)
-            print "Stopping Boring Hopper"
-            subprocess.call(['/usr/local/bin/hyper', 'stop', 'boring-hopper'])
+            subprocess.call(['/usr/local/bin/hyper', 'stop', 'boring-hopper'], stdout=FNULL, stderr=subprocess.STDOUT)
