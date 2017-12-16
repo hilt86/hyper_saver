@@ -34,8 +34,8 @@ class Printer():
 
 def check_container_running():
     """ This function checks is a hyper container is running """
-    state = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=boring-hopper', '-q']).strip()
-    return bool(state == "f2f225c16c75")
+    state = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=boring-hopper', '--format', '{{ .Names }}']).strip()
+    return bool(state == "boring-hopper")
 
 if __name__ == "__main__":
     while True:
