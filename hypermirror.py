@@ -21,15 +21,16 @@ def search():
 
 def container_running():
     """This function checks is a hyper container is running"""
-    state = subprocess.call(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=boring-hopper', '-q'])
+    state = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=boring-hopper', '-q']).strip()
     return bool(state == "f2f225c16c75")
 
 if __name__ == "__main__":
-    cont_status = container_running()
-    time.sleep(5)
-    if search():
-        print "a Yubikey is plugged in"
-        if not cont_status:
+    while True:
+        cont_status = container_running()
+        usb_status = search()
+        print ("Container running : %s Yubikey inserted : %s") % (cont_status, usb_status)
+        time.sleep(5)
+        if cont_status == False and usb_status == True:
             time.sleep(3)
             print "Starting Boring Hopper"
             subprocess.call(['/usr/local/bin/hyper', 'start', 'boring-hopper'])
@@ -39,11 +40,7 @@ if __name__ == "__main__":
             time.sleep(3)
             print "Attaching FIP"
             subprocess.call(['/usr/local/bin/hyper', 'fip', 'attach', 'access', 'boring-hopper'])
-        else:
-            print "Y + R"
-    else:
-        print "no Yubikey device is plugged in"
-        if cont_status:
+        elif usb_status != True and cont_status == True:
             print "detaching FIP"
             time.sleep(3)
             subprocess.call(['/usr/local/bin/hyper', 'fip', 'detach', 'boring-hopper'])
