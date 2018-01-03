@@ -12,13 +12,12 @@ FNULL = open(os.devnull, 'w')
 CONTAINER_NAME = sys.argv[1]
 FIP_NAME = sys.argv[2]
 
+# Spawn an osquery process using an ephemeral extension socket.
+instance = osquery.SpawnInstance()
+instance.open()  # This may raise an exception
+
 
 def search():
-    """ This function searches for a Yubikey """
-    # Spawn an osquery process using an ephemeral extension socket.
-    instance = osquery.SpawnInstance()
-    instance.open()  # This may raise an exception
-
     # Issues queries and call osquery Thrift APIs.
     usb_devices = instance.client.query("select * from usb_devices;")
 
