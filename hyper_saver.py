@@ -24,7 +24,7 @@ def search():
     # search for a Yubikey
     for device in usb_devices.response:
         for usb_attributes in device:
-            if usb_devices.response[usb_devices.response.index(device)]['vendor'] == "Yubico" and usb_devices.response[usb_devices.response.index(device)]['model'] == "Yubikey NEO OTP+U2F+CCID":
+            if usb_devices.response[usb_devices.response.index(device)]['vendor'] == "Yubico":
                 return True
     return False
 
