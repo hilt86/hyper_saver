@@ -34,14 +34,14 @@ class Printer():
         sys.stdout.write("\r\x1b[K"+data.__str__())
         sys.stdout.flush()
 
-def check_container_running():
+def check_container_running(container):
     """ This function checks is a hyper container is running """
-    state = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=boring-hopper', '--format', '{{ .Names }}']).strip()
-    return bool(state == "boring-hopper")
+    state = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=' + container, '--format', '{{ .Names }}']).strip()
+    return bool(state == container)
 
 if __name__ == "__main__":
     while True:
-        container_running = check_container_running()
+        container_running = check_container_running(CONTAINER_NAME)
         yubikey_present = search()
 
         """ set and print status """

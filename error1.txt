@@ -1,0 +1,9 @@
+Cannot connect to the Hyper.sh server.
+Traceback (most recent call last):
+  File "/Users/hilt/hyper_saver/hyper_saver.py", line 44, in <module>
+    container_running = check_container_running()
+  File "/Users/hilt/hyper_saver/hyper_saver.py", line 39, in check_container_running
+    state = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=boring-hopper', '--format', '{{ .Names }}']).strip()
+  File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/subprocess.py", line 573, in check_output
+    raise CalledProcessError(retcode, cmd, output=output)
+subprocess.CalledProcessError: Command '['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=boring-hopper', '--format', '{{ .Names }}']' returned non-zero exit status 1
