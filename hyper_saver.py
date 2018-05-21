@@ -39,6 +39,50 @@ def check_container_running(container):
     state = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=' + container, '--format', '{{ .Names }}']).strip()
     return bool(state == container)
 
+def get_container_id_from_name(container):
+    """ returns container id if running """
+    containerId = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'name=' + container, '--format', '{{ .ID }}']).strip()
+    return containerId
+
+def check_fip_attached(fip, container):
+    """ checks that given fip is attached to given container """
+
+def start_container(container):
+    """ starts container """
+    try:
+        subprocess.call(['/usr/local/bin/hyper', 'start', container], stdout=FNULL, stderr=subprocess.STDOUT)
+    except IOError:
+        print(" I/O error ")
+
+def stop_container(container):
+    """ stops container """
+    try:
+        subprocess.call(['/usr/local/bin/hyper', 'stop', container], stdout=FNULL, stderr=subprocess.STDOUT)
+    except IOError:
+        print(" I/O error ")
+
+def start_sshd(container):
+    """ starts sshd in container """
+    try:
+        subprocess.call(['/usr/local/bin/hyper', 'exec', '-d', container, '/usr/sbin/sshd'], stdout=FNULL, stderr=subprocess.STDOUT)
+    except IOError:
+        print(" I/O error ")
+
+def attach_fip(fip, container):
+    """ attaches fip to container """
+    try:
+        subprocess.call(['/usr/local/bin/hyper', 'fip', 'attach', fip, container], stdout=FNULL, stderr=subprocess.STDOUT)
+    except IOError:
+        print(" I/O error ")
+
+def detach_fip(container):
+    """ detaches fip from container """
+    try:
+        subprocess.call(['/usr/local/bin/hyper', 'fip', 'detach', container], stdout=FNULL, stderr=subprocess.STDOUT)
+    except IOError:
+        print(" I/O error ")
+
+
 if __name__ == "__main__":
     while True:
         container_running = check_container_running(CONTAINER_NAME)
@@ -58,16 +102,12 @@ if __name__ == "__main__":
             cont_disp_status = "starting"
             screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
             Printer(screen_output)
-            subprocess.call(['/usr/local/bin/hyper', 'start', CONTAINER_NAME], stdout=FNULL, stderr=subprocess.STDOUT)
+            start_container(CONTAINER_NAME)
             time.sleep(3)
-            subprocess.call(['/usr/local/bin/hyper', 'exec', '-d', CONTAINER_NAME, '/usr/sbin/sshd'], stdout=FNULL, stderr=subprocess.STDOUT)
-            time.sleep(3)
-            subprocess.call(['/usr/local/bin/hyper', 'fip', 'attach', FIP_NAME, CONTAINER_NAME], stdout=FNULL, stderr=subprocess.STDOUT)
+            start_sshd(CONTAINER_NAME)
         elif not yubikey_present and container_running: 
             cont_disp_status = "stopping"
             screen_output =  "Container : %s ||| Yubikey : %s" % (cont_disp_status, usb_disp_status)
             Printer(screen_output)
             time.sleep(3)
-            subprocess.call(['/usr/local/bin/hyper', 'fip', 'detach', CONTAINER_NAME], stdout=FNULL, stderr=subprocess.STDOUT)
-            time.sleep(3)
-            subprocess.call(['/usr/local/bin/hyper', 'stop', CONTAINER_NAME], stdout=FNULL, stderr=subprocess.STDOUT)
+            stop_container(CONTAINER_NAME)
