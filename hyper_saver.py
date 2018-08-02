@@ -14,10 +14,15 @@ FIP_NAME = sys.argv[2]
 
 # Spawn an osquery process using an ephemeral extension socket.
 instance = osquery.SpawnInstance()
-instance.open()  # This may raise an exception
+# This may raise an exception
+instance.open()
 
 
-def search():
+def search_for_yubico_usb():
+    """
+    Searches USB devices list for devices made by Yubico &
+    Returns true if a device made by Yubico is present
+    """
     # Issues queries and call osquery Thrift APIs.
     usb_devices = instance.client.query("select * from usb_devices;")
 
@@ -35,12 +40,12 @@ class Printer():
         sys.stdout.flush()
 
 def check_container_running(container):
-    """ This function checks is a hyper container is running """
+    """ This function checks if a hyper container is running """
     state = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'status=running', '-f', 'name=' + container, '--format', '{{ .Names }}']).strip()
     return bool(state == container)
 
 def get_container_id_from_name(container):
-    """ returns container id if running """
+    """ returns containerId if running """
     containerId = subprocess.check_output(['/usr/local/bin/hyper', 'ps', '-f', 'name=' + container, '--format', '{{ .ID }}']).strip()
     return containerId
 
@@ -85,8 +90,11 @@ def detach_fip(container):
 
 if __name__ == "__main__":
     while True:
-        container_running = check_container_running(CONTAINER_NAME)
-        yubikey_present = search()
+        try:
+            container_running = check_container_running(CONTAINER_NAME)
+        except subprocess.CalledProcessError:
+            print(" I/O error ")
+        yubikey_present = search_for_yubico_usb()
 
         """ set and print status """
         if container_running == True: cont_disp_status = "running"
